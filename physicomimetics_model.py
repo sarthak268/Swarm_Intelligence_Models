@@ -69,7 +69,11 @@ def get_angle(pos1, pos2):
 def plot(pos, ang):
 	for i in range(len(pos)):
 		plt.scatter(x=pos[i][0], y=pos[i][1])
-	plt.show()
+		plt.arrow(x=pos[i][0], y=pos[i][1], dx=math.cos(ang[i]) , dy=math.sin(ang[i]))
+	plt.xlim(-40, 40)
+	plt.ylim(-40, 40)
+	plt.savefig('./results/physicomimetics_model/' + str(count) + '.jpg')
+	plt.close()
 
 if (__name__ == '__main__'):
 	# global variables
@@ -79,6 +83,7 @@ if (__name__ == '__main__'):
 	delta_T = 1
 	grid_size = 10
 	n_agents = 4
+	count = 0
 
 	robot_positions, robot_angles = begin(n_agents)
 
@@ -91,6 +96,13 @@ if (__name__ == '__main__'):
 	plot(robot_positions, robot_angles)
 
 	while (True):
+
+		print ('Positions = ')
+		print (robot_positions)
+		print ('Angles = ')
+		print (robot_angles)
+		print ('============================================')
+		print ('\n')
 
 		robot_positions_temp = []
 		robot_angles_temp = []
@@ -129,6 +141,10 @@ if (__name__ == '__main__'):
 		robot_angles = robot_angles_temp
 
 		plot(robot_positions, robot_angles)
+		count += 1
+
+		if (count == 10):
+			break
 
 		# print ('Positions = ')
 		# print (robot_positions)

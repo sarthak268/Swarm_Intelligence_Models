@@ -1,5 +1,5 @@
 import random
-import matplotlib
+import matplotlib.pyplot as plt
 import math
 import numpy as np
 
@@ -62,6 +62,15 @@ def normalize(vec):
 		norm = distance(vec[0], vec[1], 0, 0)
 		return [vec[0]/norm, vec[1]/norm]
 
+def plot(a_p, s_p):
+	for i in range(len(a_p)):
+		plt.scatter(x=a_p[i][0], y=a_p[i][1], c='r')
+	plt.scatter(x=s_p[0], y=s_p[1])
+	plt.xlim(-15, 15)
+	plt.ylim(-15, 15)
+	plt.savefig('./results/shepherding_model/' + str(count) + '.jpg')
+	plt.close()
+
 if (__name__ == '__main__'):
 	num_agents = 5
 	grid_size = 10
@@ -87,8 +96,6 @@ if (__name__ == '__main__'):
 
 	count = 0
 	while True:
-
-		count += 1
 
 		print ('Agent Positions: ', agent_positions)
 		print ('Agent Velocities: ', agent_velocities)
@@ -165,6 +172,9 @@ if (__name__ == '__main__'):
 		agent_velocities = agent_velocities_temp
 		shepherd_position = shepherd_position_temp
 		shepherd_velocity = shepherd_velocity_temp
+
+		plot(agent_positions, shepherd_position)
+		count += 1
 
 		if (count == 10):
 			break
