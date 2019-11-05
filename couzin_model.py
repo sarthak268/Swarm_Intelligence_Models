@@ -36,15 +36,15 @@ def plot(pos, ang):
 	plt.savefig('./results/couzin_model/images/' + str(count) + '.png')
 	plt.close()
 
-def save(image_folder='./results/couzin_model/images/', video_name='./results/couzin_model/results/videos/video_swarms.avi'):
+def save(image_folder, video_name):
 	images = [img for img in os.listdir(image_folder) if img.endswith(".png")]
 	frame = cv2.imread(os.path.join(image_folder, images[0]))
 	height, width, layers = frame.shape
-
-	video = cv2.VideoWriter(video_name, 0, 1, (width, height))
+	
+	video = cv2.VideoWriter(video_name, 0, 1, (width,height))
 
 	for image in images:
-		video.write(cv2.imread(os.path.join(image_folder, image)))
+	    video.write(cv2.imread(os.path.join(image_folder, image)))
 
 	cv2.destroyAllWindows()
 	video.release()
@@ -132,7 +132,7 @@ if (__name__ == '__main__'):
 		plot(agent_positions, agent_velocities)
 
 		if (count == 15):
-			save()
+			save('./results/couzin_model/images/', './results/couzin_model/results/videos/video_swarms.avi')
 			break
 
 

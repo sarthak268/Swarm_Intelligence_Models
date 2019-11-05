@@ -2,6 +2,8 @@ import random
 import matplotlib.pyplot as plt
 import math
 import numpy as np
+import cv2 
+import os
 
 def distance(x0, y0, x1, y1):
 	return math.sqrt((x0 - x1)**2 + (y0 - y1)**2)
@@ -66,23 +68,25 @@ def plot(a_p, s_p):
 	for i in range(len(a_p)):
 		plt.scatter(x=a_p[i][0], y=a_p[i][1], c='r')
 	plt.scatter(x=s_p[0], y=s_p[1])
-	plt.xlim(-15, 15)
-	plt.ylim(-15, 15)
-	plt.savefig('./results/shepherding_model/' + str(count) + '.jpg')
+	plt.xlim(-10, 160)
+	plt.ylim(-10, 160)
+	plt.savefig('./results/shepherding_model/img/' + str(count) + '.png')
 	plt.close()
 
 if (__name__ == '__main__'):
-	num_agents = 5
-	grid_size = 10
-	n = 2
-	rs = 3.5
-	ra = 1
-	c = 1
-	rho_a = 1
+	num_agents = 100
+	grid_size = 150
+	n = 30
+	rs = 65
+	ra = 2
+	c = 1.05
+	rho_a = 2
 	rho_s = 1
 	m = 0.5
-	f_n = 2.5
+	f_n = 50
 	shepherd_speed = 1
+	num_steps = 100
+	tau = 0.1
 
 	agent_positions = initialise_agents()
 	print ('Agent Positions = ', agent_positions)
@@ -97,8 +101,9 @@ if (__name__ == '__main__'):
 	count = 0
 	while True:
 
-		print ('Agent Positions: ', agent_positions)
-		print ('Agent Velocities: ', agent_velocities)
+		#print ('Agent Positions: ', agent_positions)
+		#print ('Agent Velocities: ', agent_velocities)
+		print (count)
 		print ('Shepherd Position: ', shepherd_position)
 		print ('Shepherd Velocity: ', shepherd_velocity)
 		print ('\n')
@@ -134,8 +139,8 @@ if (__name__ == '__main__'):
 
 			F = [c*C_cap[0] + rho_s*Rs[0] + rho_a*Ra[0], c*C_cap[1] + rho_s*Rs[1] + rho_a*Ra[1]]
 			a = [F[0] / m, F[1] / m]
-			agent_velocities_temp.append([agent_velocities[current_agent][0] + a[0], agent_velocities[current_agent][1] + a[1]])
-			s = [agent_velocities[current_agent][0] + 0.5*a[0], agent_velocities[current_agent][1] + 0.5*a[1]]
+			agent_velocities_temp.append([agent_velocities[current_agent][0] + tau * a[0], agent_velocities[current_agent][1] + tau * a[1]])
+			s = [agent_velocities[current_agent][0] * tau + 0.5*a[0]*tau*tau, agent_velocities[current_agent][1] * tau + 0.5*a[1]*tau*tau]
 
 			agent_positions_temp.append([agent_positions[current_agent][0] + s[0], agent_positions[current_agent][1] + s[1]])
 
@@ -156,17 +161,15 @@ if (__name__ == '__main__'):
 					dis_from_gcom = d
 					agent_farthest_from_gcom = a
 			if (dis_from_gcom < f_n):
-				###### doubt
 				Pd = [gcom[0] + 0.5*(gcom[0] - target_location[0]), gcom[1] + 0.5*(gcom[1] - target_location[1])]
 				shepherd_velocity_temp = [Pd[0] - shepherd_position[0], Pd[1] - shepherd_position[1]]
 				shepherd_velocity_temp = shepherd_speed * normalize(shepherd_velocity_temp)
 			else:
-				###### doubt
 				Pc = [agent_positions[agent_farthest_from_gcom][0] + 0.1*(agent_positions[agent_farthest_from_gcom][0] - gcom[0]), agent_positions[agent_farthest_from_gcom][1] + 0.1*(agent_positions[agent_farthest_from_gcom][1] - gcom[1])]
 				shepherd_velocity_temp = [Pc[0] - shepherd_position[0], Pc[1] - shepherd_position[1]]
 				shepherd_velocity_temp = shepherd_speed * normalize(shepherd_velocity_temp)
 
-		shepherd_position_temp = [shepherd_velocity_temp[0] + shepherd_position[0], shepherd_velocity_temp[1] + shepherd_position[1]]
+		shepherd_position_temp = [shepherd_velocity_temp[0]*tau + shepherd_position[0], shepherd_velocity_temp[1]*tau + shepherd_position[1]]
 
 		agent_positions = agent_positions_temp
 		agent_velocities = agent_velocities_temp
@@ -174,9 +177,10 @@ if (__name__ == '__main__'):
 		shepherd_velocity = shepherd_velocity_temp
 
 		plot(agent_positions, shepherd_position)
+
 		count += 1
 
-		if (count == 10):
+		if (count == num_steps):
 			break
 
 

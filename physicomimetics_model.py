@@ -3,62 +3,24 @@ import random
 import copy
 import matplotlib.pyplot as plt
 
-def ap(robots_distance, robots_bearing):
-	# both are lists containing bearing and distance of robots of all robots wrt to one robot
-	index = 0
-	sum_fx = 0
-	sum_fy = 0
-	vx = 0 # full friction
-	vy = 0
-
-	for index in range(len(robots_bearing)): # For all neighbours do
-		theta = robots_bearing[index]
-		r = robots_distance[index]
-
-		if (r > 1.5*R): # if robot is too far ignore it
-			F = 0
-		else:
-			F = G / r*r
-			if (F > F_max):
-				F = F_max
-			if (r < R):
-				F = -F # repulsive force
-
-		fx = F * math.cos(theta)
-		fy = F * math.sin(theta)
-		sum_fx += fx
-		sum_fy += fy
-
-	delta_vx = delta_T * sum_fx
-	delta_vy = delta_T * sum_fy
-
-	vx += delta_vx
-	vy += delta_vy
-
-	delta_x = delta_T * vx
-	delta_y = delta_T * vy
-
-	distance = int(math.sqrt(delta_vx*delta_vx + delta_vy*delta_vy))
-	turn = int(math.atan2(delta_y, delta_x))
-	# check if we require this
-	if (delta_x < 0):
-		turn += math.pi
-
-	return distance, turn
-
 def begin(num_agents):
 	robot_pos = []
-	robot_angle = []
+	robot_vel = []
 
 	for i in range(num_agents):
-		pos_x = random.randint(0, grid_size-1)
-		pos_y = random.randint(0, grid_size-1)
-		# can also do -pi to pi
-		angle = random.uniform(-math.pi, math.pi)
-		robot_pos.append([pos_x, pos_y])
-		robot_angle.append(angle)
+		pos_x = random.uniform(0, grid_size-1)
+		pos_y = random.uniform(0, grid_size-1)
 
-	return robot_pos, robot_angle
+		vel_x = random.uniform(0, grid_size-1)
+		vel_y = random.uniform(0, grid_size-1)
+		vel = [vel_x, vel_y]
+		if (get_norm(vel) >= v_max):
+			vel = v_max * normalize(vel)
+
+		robot_pos.append([pos_x, pos_y])
+		robot_vel.append(vel)
+
+	return robot_pos, robot_vel
 
 def get_distance(pos1, pos2):
 	return math.sqrt((pos1[0] - pos2[0])**2 + (pos1[1] - pos2[1])**2)
@@ -66,104 +28,93 @@ def get_distance(pos1, pos2):
 def get_angle(pos1, pos2):
 	return math.atan2((pos2[1] - pos1[1]), (pos2[0] - pos1[0]))
 
-def plot(pos, ang):
+def get_norm(vec):
+	norm = get_distance(vec, [0, 0])
+	return norm
+
+def normalize(vec):
+	if (vec == [0, 0]):
+		return vec
+	else:
+		norm = get_distance(vec, [0, 0])
+		return [vec[0]/norm, vec[1]/norm]
+
+def plot(pos):
 	for i in range(len(pos)):
-		plt.scatter(x=pos[i][0], y=pos[i][1])
-		plt.arrow(x=pos[i][0], y=pos[i][1], dx=math.cos(ang[i]) , dy=math.sin(ang[i]))
-	plt.xlim(-40, 40)
-	plt.ylim(-40, 40)
-	plt.savefig('./results/physicomimetics_model/' + str(count) + '.jpg')
+		plt.scatter(x=pos[i][0], y=pos[i][1], c='r')
+	plt.xlim(-60, 60)
+	plt.ylim(-60, 60)
+	sc = str(count)
+	if (len(sc) == 1):
+		sc = '00' + sc
+	elif (len(sc) == 2):
+		sc = '0' + sc
+	plt.savefig('./results/physicomimetics_model/without_target/img/' + sc + '.jpg')
 	plt.close()
 
 if (__name__ == '__main__'):
-	# global variables
-	R = 10
-	G = 10
-	F_max = 10
-	delta_T = 1
-	grid_size = 10
-	n_agents = 4
+	R = 23
+	G = 270
+	F_max = 1
+	m = 1
+	delta_T = 0.1
+	grid_size = 20
+	n_agents = 20
+	v_max = 2
+	target = False
+	target_force = 0.25
+	target_pos = [0, 0]
+	
 	count = 0
 
-	robot_positions, robot_angles = begin(n_agents)
-
-	# print ('Positions = ')
-	# print (robot_positions)
-	# print ('Angles = ')
-	# print (robot_angles)
-	# print ('============================================')
-	# print ('\n')
-	plot(robot_positions, robot_angles)
+	robot_positions, robot_vel = begin(n_agents)
 
 	while (True):
 
-		print ('Positions = ')
-		print (robot_positions)
-		print ('Angles = ')
-		print (robot_angles)
-		print ('============================================')
-		print ('\n')
+		plot(robot_positions)
 
-		robot_positions_temp = []
-		robot_angles_temp = []
+		robot_positions_temp = robot_positions.copy()
+		robot_vel_temp = robot_vel.copy()
 
 		for i in range(n_agents): # for all agents
-			pos_1 = robot_positions[i]
-			angle_1 = robot_angles[i]
-			
-			distances = []
-			bearings = []
-
-			for j in range(n_agents): # finding distance and bearing from all agents
+			F_total = [0, 0]
+			for j in range(n_agents):
 				if (i != j):
-					pos_2 = robot_positions[j]
-					angle_2 = robot_angles[j]
-							
-					dis = get_distance(pos_1, pos_2)
-					ang = get_angle(pos_1, pos_2)
+					d = get_distance(robot_positions[i], robot_positions[j])
+					F = [robot_positions[j][0] - robot_positions[i][0], robot_positions[j][1] - robot_positions[i][1]]
+					F = normalize(F)
+					F_mag = G / (d*d)
+					if (F_mag > F_max):
+						F_mag = F_max
+					F = [F[0] * F_mag, F[1] * F_mag]
+					if (d < R):
+						F = [-F[0], -F[1]]
+					if (d > 1.5*R):
+						F = [0, 0]
+					F_total = [F_total[0] + F[0], F_total[1] + F[1]]
+					print (F_total)
+					if (target):
+						force_due_to_target = [target_pos[0] - robot_positions_temp[i][0], target_pos[1] - robot_positions_temp[i][1]]
+						force_due_to_target = normalize(force_due_to_target)
+						force_due_to_target = [target_force * force_due_to_target[0], target_force * force_due_to_target[1]]
+						F_total = [F_total[0] + force_due_to_target[0], F_total[1] + force_due_to_target[1]]
+			a = [F_total[0] / m, F_total[1] / m]
+			s = [robot_vel_temp[i][0]*delta_T + 0.5*a[0]*delta_T*delta_T, robot_vel[i][1]*delta_T + 0.5*a[1]*delta_T*delta_T]
+			robot_vel_temp[i] = [robot_vel_temp[i][0] + a[0]*delta_T, robot_vel_temp[i][1] + a[1]*delta_T] 
+			if (get_norm(robot_vel_temp[i]) > v_max):
+				robot_vel_temp[i] = v_max * normalize(robot_vel_temp[i])
+			robot_positions_temp[i] = [robot_positions_temp[i][0] + s[0], robot_positions_temp[i][1] + s[1]]
 
-					distances.append(dis)
-					bearings.append(ang)
-
-			dis, turn = ap(distances, bearings)
-
-			pos_1_new = copy.copy(pos_1)
-			angle_1_new = copy.copy(angle_1)
-
-			pos_1_new[0] += dis * math.cos(turn)
-			pos_1_new[1] += dis * math.sin(turn)
-			angle_1_new += turn
-
-			robot_positions_temp.append(pos_1_new)
-			robot_angles_temp.append(angle_1_new)
-
-		robot_positions = robot_positions_temp
-		robot_angles = robot_angles_temp
-
-		plot(robot_positions, robot_angles)
 		count += 1
 
-		if (count == 10):
+		robot_positions = robot_positions_temp.copy()
+		robot_vel = robot_vel_temp.copy()
+
+		if (count == 300):
 			break
 
-		# print ('Positions = ')
-		# print (robot_positions)
-		# print ('Angles = ')
-		# print (robot_angles)
-		# print ('============================================')
-		# print ('\n')
 
 
-
-
-
-
-
-
-
-
-
-
-
+				
 
 
