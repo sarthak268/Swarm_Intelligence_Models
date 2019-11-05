@@ -43,7 +43,8 @@ def initialise_agents():
 	return agent_pos
 
 def initialise_shepherd():
-	return [random.randint(0, grid_size-1), random.randint(0, grid_size-1)]
+	#return [random.randint(0, grid_size-1), random.randint(0, grid_size-1)]
+	return [130, 130]
 
 def initialise_agent_velocities():
 	vel = []
@@ -70,7 +71,12 @@ def plot(a_p, s_p):
 	plt.scatter(x=s_p[0], y=s_p[1])
 	plt.xlim(-10, 160)
 	plt.ylim(-10, 160)
-	plt.savefig('./results/shepherding_model/img/' + str(count) + '.png')
+	sc = str(count)
+	if (len(sc) == 1):
+		sc = '00' + sc
+	elif (len(sc) == 2):
+		sc = '0' + sc
+	plt.savefig('./results/shepherding_model/img/' + sc + '.png')
 	plt.close()
 
 if (__name__ == '__main__'):
@@ -84,7 +90,7 @@ if (__name__ == '__main__'):
 	rho_s = 1
 	m = 0.5
 	shepherd_speed = 1
-	num_steps = 100
+	num_steps = 300
 	tau = 0.1
 
 	agent_positions = initialise_agents()
@@ -141,7 +147,17 @@ if (__name__ == '__main__'):
 			agent_velocities_temp.append([agent_velocities[current_agent][0] + tau * a[0], agent_velocities[current_agent][1] + tau * a[1]])
 			s = [agent_velocities[current_agent][0] * tau + 0.5*a[0]*tau*tau, agent_velocities[current_agent][1] * tau + 0.5*a[1]*tau*tau]
 
-			agent_positions_temp.append([agent_positions[current_agent][0] + s[0], agent_positions[current_agent][1] + s[1]])
+			agent_newpos = [agent_positions[current_agent][0] + s[0], agent_positions[current_agent][1] + s[1]]
+			if (agent_newpos[0] > grid_size):
+				agent_newpos[0] = grid_size
+			elif (agent_newpos[0] < 0):
+				agent_newpos[0] = 0
+			if (agent_newpos[1] > grid_size):
+				agent_newpos[1] = grid_size
+			elif (agent_newpos[1] < 0):
+				agent_newpos[1] = 0
+
+			agent_positions_temp.append(agent_newpos)
 
 		## Decide shepherd action
 		dis_from_agents = 0
@@ -160,7 +176,7 @@ if (__name__ == '__main__'):
 					dis_from_gcom = d
 					agent_farthest_from_gcom = a
 			
-			fn = ra * math.pow(num_agents, 2/3)
+			f_n = ra * math.pow(num_agents, 2/3)
 			if (dis_from_gcom < f_n):
 				Pd = [gcom[0] + 0.5*(gcom[0] - target_location[0]), gcom[1] + 0.5*(gcom[1] - target_location[1])]
 				shepherd_velocity_temp = [Pd[0] - shepherd_position[0], Pd[1] - shepherd_position[1]]

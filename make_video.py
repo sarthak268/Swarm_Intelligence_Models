@@ -1,10 +1,10 @@
 import cv2
 import os
 
-image_folder = './results/physicomimetics_model/with_origin_target/img/'
+image_folder = './results/shepherding_model/img/'
 video_name = 'video.avi'
 
-images = [img for img in os.listdir(image_folder) if img.endswith(".jpg")]
+images = [img for img in os.listdir(image_folder) if img.endswith(".png")]
 images.sort()
 print (images)
 frame = cv2.imread(os.path.join(image_folder, images[0]))
