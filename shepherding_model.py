@@ -83,7 +83,6 @@ if (__name__ == '__main__'):
 	rho_a = 2
 	rho_s = 1
 	m = 0.5
-	f_n = 50
 	shepherd_speed = 1
 	num_steps = 100
 	tau = 0.1
@@ -160,6 +159,8 @@ if (__name__ == '__main__'):
 				if (d > dis_from_gcom):
 					dis_from_gcom = d
 					agent_farthest_from_gcom = a
+			
+			fn = ra * math.pow(num_agents, 2/3)
 			if (dis_from_gcom < f_n):
 				Pd = [gcom[0] + 0.5*(gcom[0] - target_location[0]), gcom[1] + 0.5*(gcom[1] - target_location[1])]
 				shepherd_velocity_temp = [Pd[0] - shepherd_position[0], Pd[1] - shepherd_position[1]]
