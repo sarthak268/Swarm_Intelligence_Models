@@ -5,4 +5,4 @@ This repository includes
 - Implementation of Physicomimetics models for 2 different patterns.
 - Implementation of shepherding model.
 
-Results available <a href="https://drive.google.com/drive/folders/1xc-yU7-Gg0QIVHcg1ukQeIlYLzGi7L9P?usp=sharing">here</a>
+Results are available <a href="https://drive.google.com/drive/folders/1xc-yU7-Gg0QIVHcg1ukQeIlYLzGi7L9P?usp=sharing">here</a>
